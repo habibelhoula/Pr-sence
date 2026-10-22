@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)file:///C:/Users/habib/Documents/presences.html -->
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Présences — Gestion des groupes</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --surface:#fff; --border:#e6e8ec; --border-strong:#d6dae0;
+    --text:#0f172a; --text-2:#64748b;
+    --accent:#2563eb; --accent-2:#1d4ed8; --accent-soft:#eff4ff;
+    --green-bg:#e6f8f1; --green-br:#b9ead8; --green:#067647;
+    --red-bg:#fdeceb;  --red-br:#f7ccc8;   --red:#b42318;
+    --gray-bg:#f1f3f6; --gray-br:#e2e6eb;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);font-size:14px;
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{display:flex;height:100vh;overflow:hidden}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{width:290px;flex:0 0 290px;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:16px 14px;gap:14px;overflow:hidden}
+  .brand{display:flex;gap:10px;align-items:center;padding:0 4px}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#4f46e5);
+    color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px}
+  .brand-title{font-weight:700;font-size:14px}
+  .brand-sub{font-size:11.5px;color:var(--text-2)}
+  .nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;
+    font-weight:700;padding:0 6px}
+  .group-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+  .group-item{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;
+    cursor:pointer;border:1px solid transparent;transition:.15s}
+  .group-item:hover{background:#f6f7f9}
+  .group-item.active{background:var(--accent-soft);border-color:#dbe6ff}
+  .gi-badge{width:32px;height:32px;flex:0 0 32px;border-radius:9px;background:#eef1f6;color:#475569;
+    display:grid;place-items:center;font-size:11.5px;font-weight:800;letter-spacing:.02em}
+  .group-item.active .gi-badge{background:#fff;color:var(--accent-2)}
+  .gi-text{min-width:0}
+  .gi-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .group-item.active .gi-name{color:var(--accent-2)}
+  .gi-meta{font-size:11.5px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar-foot{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--border);padding-top:10px}
+
+  /* ---------- Buttons ---------- */
+  .btn{font:inherit;font-size:13px;font-weight:600;padding:8px 12px;border-radius:9px;
+    border:1px solid transparent;cursor:pointer;transition:.15s;background:#fff;color:var(--text);
+    display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .btn-outline{border-color:var(--border-strong);color:#334155}
+  .btn-outline:hover{background:#f8fafc;border-color:#c3cad4}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-2)}
+  .btn-ghost{background:transparent;color:var(--text-2);border:none;justify-content:flex-start}
+  .btn-ghost:hover{background:#f1f5f9;color:var(--text)}
+  .btn-ghost.danger:hover{background:var(--red-bg);color:var(--red)}
+  .btn-block{width:100%;justify-content:center}
+
+  /* ---------- Main ---------- */
+  .main{flex:1;min-width:0;overflow-y:auto;padding:26px 30px}
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+    margin-bottom:20px;flex-wrap:wrap}
+  .crumb{font-size:11.5px;color:var(--text-2);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .title{font-size:22px;font-weight:700;margin:6px 0 2px;letter-spacing:-.02em;outline:none;
+    border-radius:6px;padding:2px 4px;display:inline-block}
+  .subtitle{font-size:13px;color:var(--text-2);outline:none;border-radius:6px;padding:2px 4px;display:inline-block}
+  .title:focus,.subtitle:focus{box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+  .head-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;box-shadow:var(--shadow)}
+  .stat .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);font-weight:700}
+  .stat .value{font-size:22px;font-weight:700;margin-top:6px;letter-spacing:-.02em}
+  .stat .sub{font-size:12px;color:var(--text-2);margin-top:2px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:11px 16px;border-bottom:1px solid var(--border)}
+  .search input{width:280px;max-width:45vw;padding:8px 12px;border:1px solid var(--border-strong);
+    border-radius:9px;font:inherit;font-size:13px;background:#fbfcfd}
+  .search input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);background:#fff}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--text-2);align-items:center;flex-wrap:wrap}
+  .dot{width:8px;height:8px;border-radius:99px;display:inline-block;margin-right:6px}
+
+  /* ---------- Table ---------- */
+  .table-wrap{overflow:auto;max-height:calc(100vh - 330px)}
+  .grid{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+  .grid thead th{position:sticky;top:0;z-index:3;background:#fbfcfd;color:var(--text-2);
+    font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+    text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .grid thead th.c-sess{text-align:center;position:relative;min-width:66px;padding:10px 6px;
+    font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .sess-tools{position:absolute;top:2px;right:2px;display:flex;gap:2px;opacity:0;transition:.15s}
+  .grid thead th.c-sess:hover .sess-tools{opacity:1}
+  .grid thead th.c-rate{min-width:110px}
+  .grid tbody td{padding:6px 12px;border-bottom:1px solid #eef1f4;vertical-align:middle}
+  .grid tbody tr:last-child td{border-bottom:none}
+  .grid tbody tr:hover{background:#fafbfd}
+  .grid tbody tr[hidden]{display:none}
+  .c-num{color:var(--text-2);font-size:12px;font-variant-numeric:tabular-nums;width:44px}
+  .td-att{text-align:center}
+
+  .name{display:inline-block;min-width:130px;padding:4px 6px;border-radius:6px;font-weight:500;
+    outline:none;cursor:text}
+  .name:hover{background:#f2f5f9}
+  .name:focus{background:#fff;box-shadow:0 0 0 2px var(--accent-soft), 0 0 0 1px var(--accent)}
+
+  .att{width:32px;height:30px;border-radius:9px;border:1px solid transparent;font-weight:800;
+    font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+    transition:.12s;font-family:inherit;line-height:1}
+  .att[data-v="P"]{background:var(--green-bg);color:var(--green);border-color:var(--green-br)}
+  .att[data-v="A"]{background:var(--red-bg);color:var(--red);border-color:var(--red-br)}
+  .att[data-v=""]{background:var(--gray-bg);color:#9aa4b2;border-color:var(--gray-br)}
+  .att:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(16,24,40,.10)}
+  .att:active{transform:none}
+
+  .rate{display:inline-flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+  .rate-num{font-size:12px;font-weight:700;color:var(--text-2)}
+  .bar{width:52px;height:6px;border-radius:99px;background:#eceff3;overflow:hidden;display:inline-block}
+  .bar i{display:block;height:100%;border-radius:99px}
+  .bar i.good{background:#12b76a}
+  .bar i.mid{background:#f79009}
+  .bar i.bad{background:#f04438}
+  .rate-empty{color:#c2c9d2}
+
+  .pay{border:1px solid var(--gray-br);background:var(--gray-bg);color:var(--text-2);
+    border-radius:99px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer;
+    display:inline-flex;gap:6px;align-items:center;font-family:inherit;transition:.12s}
+  .pay:hover{filter:brightness(.98);border-color:#cbd2da}
+  .pay.paid{background:var(--green-bg);border-color:var(--green-br);color:var(--green)}
+  .pay.unpaid{background:#fff1e8;border-color:#fdba74;color:#c2410c}
+  .pay-blocks{display:flex;flex-direction:column;gap:5px;align-items:flex-start;margin-top:3px}
+  .pay-block{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--gray-br);border-radius:7px;padding:3px 6px;font-size:11px;font-weight:700;white-space:nowrap}
+  .pay-block.paid{background:var(--green-bg);border-color:var(--green-br);color:var(--green)}
+  .pay-block.unpaid{background:#fff1e8;border-color:#fdba74;color:#c2410c}
+  .pay-date{font-weight:600;opacity:.7;font-size:11px}
+
+  .mini{width:18px;height:18px;border-radius:5px;border:1px solid var(--border-strong);
+    background:#fff;color:var(--text-2);font-size:11px;line-height:1;cursor:pointer;padding:0;
+    display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  .mini:hover{background:#f1f5f9}
+  .mini.del:hover{background:var(--red-bg);border-color:var(--red-br);color:var(--red)}
+  .mini.ok:hover{background:var(--green-bg);border-color:var(--green-br);color:var(--green)}
+  .c-act{width:40px;text-align:right}
+  .c-act .mini{opacity:0;transition:.15s}
+  tr:hover .c-act .mini{opacity:1}
+  @media (hover:none){.c-act .mini{opacity:1}.sess-tools{opacity:1}}
+
+  .empty-cell{text-align:center;color:var(--text-2);padding:34px 16px!important}
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    height:70%;color:var(--text-2);text-align:center;gap:10px}
+  .empty-ico{font-size:34px}
+  .empty h2{margin:0;color:var(--text);font-size:18px}
+  .empty p{margin:0 0 6px}
+
+  /* ---------- Dialog ---------- */
+  dialog{border:none;border-radius:16px;padding:0;box-shadow:0 24px 60px rgba(16,24,40,.22);
+    width:min(430px,92vw);background:var(--surface);color:var(--text)}
+  dialog::backdrop{background:rgba(15,23,42,.35);backdrop-filter:blur(2px)}
+  .dlg-form{padding:22px;display:flex;flex-direction:column;gap:14px;margin:0}
+  .dlg-form h2{margin:0;font-size:16px}
+  .dlg-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text-2)}
+  .dlg-form input{padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;
+    font:inherit;font-size:14px;color:var(--text);background:#fbfcfd}
+  .dlg-form input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);background:#fff}
+  .dlg-form menu{display:flex;justify-content:flex-end;gap:8px;margin:2px 0 0;padding:0}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:860px){
+    .app{flex-direction:column;height:auto;min-height:100vh;overflow:visible}
+    .sidebar{width:100%;flex:none;border-right:none;border-bottom:1px solid var(--border)}
+    .group-list{max-height:170px}
+    .main{overflow:visible;padding:18px}
+    .table-wrap{max-height:none}
+  }
+
+  /* ---------- Impression ---------- */
+  @media print{
+    body{background:#fff}
+    .sidebar,.head-actions,.card-head,.sess-tools,.c-act{display:none!important}
+    .app{display:block;height:auto;overflow:visible}
+    .main{overflow:visible;padding:0}
+    .card{box-shadow:none;border:none}
+    .table-wrap{max-height:none;overflow:visible}
+    .grid thead th{position:static}
+    .stat{break-inside:avoid}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+
+  .pay-detail{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+  .pay-detail small{color:var(--text-2);font-size:11px}
+  .student-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .student-tools .btn{font-size:11px;padding:5px 8px}
+  .money-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .money-summary div{background:#f8fafc;border:1px solid var(--border);padding:10px;border-radius:9px}
+  .money-summary b{display:block;font-size:17px;margin-top:4px}
+  .history-list{max-height:180px;overflow:auto;border:1px solid var(--border);border-radius:9px;padding:8px}
+  .history-row{padding:8px 4px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px}
+  .history-row:last-child{border-bottom:0}
+  .dlg-form select{padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;font:inherit}
+  @media(max-width:600px){.money-summary{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">✓</div>
+      <div>
+        <div class="brand-title">Présences</div>
+        <div class="brand-sub">Suivi des groupes</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="btnNewGroup">+ Nouveau groupe</button>
+    <div class="nav-label">Groupes</div>
+    <nav class="group-list" id="groupList">
+    <div class="group-item" data-gid="g_mvi5evii_39vzg">
+      <div class="gi-badge">BS</div>
+      <div class="gi-text">
+        <div class="gi-name">Bac Sciences — Groupe 1</div>
+        <div class="gi-meta">3 élèves · 3 séances</div>
+      </div>
+    </div>
+    <div class="group-item" data-gid="g_mvi5evij_adool">
+      <div class="gi-badge">2S</div>
+      <div class="gi-text">
+        <div class="gi-name">2ème Sciences — Groupe 1</div>
+        <div class="gi-meta">9 élèves · 3 séances</div>
+      </div>
+    </div>
+    <div class="group-item" data-gid="g_mvi5evij_pj9aa">
+      <div class="gi-badge">3S</div>
+      <div class="gi-text">
+        <div class="gi-name">3ème Sciences — Groupe 1</div>
+        <div class="gi-meta">7 élèves · 5 séances</div>
+      </div>
+    </div>
+    <div class="group-item" data-gid="g_mvi5evij_10ixf8">
+      <div class="gi-badge">2S</div>
+      <div class="gi-text">
+        <div class="gi-name">2ème Sciences — Groupe 2</div>
+        <div class="gi-meta">9 élèves · 3 séances</div>
+      </div>
+    </div>
+    <div class="group-item" data-gid="g_mvi5evij_1dd9r8">
+      <div class="gi-badge">2S</div>
+      <div class="gi-text">
+        <div class="gi-name">2ème Sciences — Groupe 4</div>
+        <div class="gi-meta">5 élèves · 3 séances</div>
+      </div>
+    </div>
+    <div class="group-item" data-gid="g_mvi5evik_1nu41q">
+      <div class="gi-badge">2S</div>
+      <div class="gi-text">
+        <div class="gi-name">2ème Sciences — Groupe 3</div>
+        <div class="gi-meta">13 élèves · 4 séances</div>
+      </div>
+    </div>
+    <div class="group-item" data-gid="g_mvi5evik_25lwzq">
+      <div class="gi-badge">3I</div>
+      <div class="gi-text">
+        <div class="gi-name">3ème ICO — Groupe 1</div>
+        <div class="gi-meta">2 élèves · 4 séances</div>
+      </div>
+    </div>
+    <div class="group-item active" data-gid="g_mvidanlp_281g6w">
+      <div class="gi-badge">BS</div>
+      <div class="gi-text">
+        <div class="gi-name">Bac Science G 2</div>
+        <div class="gi-meta">9 élèves · 4 séances</div>
+      </div>
+    </div></nav>
+    <div class="sidebar-foot">
+      <button class="btn btn-ghost" id="btnExportAll">⭳ Exporter tout (CSV)</button>
+      <button class="btn btn-ghost danger" id="btnReset">↺ Réinitialiser les données</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">Groupe</div>
+        <h1 class="title" contenteditable="true" spellcheck="false" data-edit="group-name">Bac Science G 2</h1>
+        <div class="subtitle" contenteditable="true" spellcheck="false" data-edit="group-schedule">mercredi de 17h à 20h</div>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-outline" id="btnAddSession">+ Séance</button>
+        <button class="btn btn-outline" id="btnAddStudent">+ Élève</button>
+        <button class="btn btn-outline" id="btnExportGroup">⭳ CSV</button>
+        <button class="btn btn-outline" id="btnPrint">🖨 Imprimer</button>
+        <button class="btn btn-outline" id="btnDelGroup">Supprimer</button>
+      </div>
+    </header>
+
+    <section class="stats" id="stats">
+    <div class="stat">
+      <div class="label">Effectif</div>
+      <div class="value">9</div>
+      <div class="sub">9 élèves inscrits</div>
+    </div>
+    <div class="stat">
+      <div class="label">Dernière séance</div>
+      <div class="value">5/9</div>
+      <div class="sub">21 oct. 2026</div>
+    </div>
+    <div class="stat">
+      <div class="label">Taux de présence</div>
+      <div class="value">89 %</div>
+      <div class="sub">32 présences / 36 pointages</div>
+    </div>
+    <div class="stat">
+      <div class="label">Paiements</div>
+      <div class="value">0/9</div>
+      <div class="sub">règlements enregistrés</div>
+    </div></section>
+
+    <section class="card">
+      <div class="card-head">
+        <div class="search"><input id="search" type="search" placeholder="Rechercher un élève…" autocomplete="off"></div>
+        <div class="legend">
+          <span><i class="dot" style="background:#12b76a"></i>Présent</span>
+          <span><i class="dot" style="background:#f04438"></i>Absent</span>
+          <span><i class="dot" style="background:#c2c9d2"></i>Non renseigné</span>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="grid" id="grid"><thead><tr>
+    <th class="c-num">N°</th>
+    <th class="c-name">Nom et prénom</th>
+    <th class="c-sess">
+        <div class="sess-date">30/09</div>
+        <span class="sess-tools">
+          <button class="mini ok" data-act="all-present" data-sid="s_mvidfock_2i4vwm" title="Marquer tous présents">✓</button>
+          <button class="mini del" data-act="del-session" data-sid="s_mvidfock_2i4vwm" title="Supprimer la séance">×</button>
+        </span>
+      </th><th class="c-sess">
+        <div class="sess-date">07/10</div>
+        <span class="sess-tools">
+          <button class="mini ok" data-act="all-present" data-sid="s_mvidg5dd_2j40xi" title="Marquer tous présents">✓</button>
+          <button class="mini del" data-act="del-session" data-sid="s_mvidg5dd_2j40xi" title="Supprimer la séance">×</button>
+        </span>
+      </th><th class="c-sess">
+        <div class="sess-date">14/10</div>
+        <span class="sess-tools">
+          <button class="mini ok" data-act="all-present" data-sid="s_mvidgge1_2k01q0" title="Marquer tous présents">✓</button>
+          <button class="mini del" data-act="del-session" data-sid="s_mvidgge1_2k01q0" title="Supprimer la séance">×</button>
+        </span>
+      </th><th class="c-sess">
+        <div class="sess-date">21/10</div>
+        <span class="sess-tools">
+          <button class="mini ok" data-act="all-present" data-sid="s_mvidgoe5_2lemz2" title="Marquer tous présents">✓</button>
+          <button class="mini del" data-act="del-session" data-sid="s_mvidgoe5_2lemz2" title="Supprimer la séance">×</button>
+        </span>
+      </th>
+    <th class="c-rate">Assiduité</th>
+    <th class="c-pay">Paiement</th>
+    <th class="c-act"></th>
+  </tr></thead><tbody><tr data-stid="e_mvidauex_29fhgp">
+      <td class="c-num">1</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidauex_29fhgp">Habiba farah ben hammouda</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidauex_29fhgp" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidauex_29fhgp" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidauex_29fhgp" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidauex_29fhgp" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidauex_29fhgp"><span class="rate-num">4/4</span><span class="bar"><i class="good" style="width:100%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidauex_29fhgp">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidauex_29fhgp" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvidc5wt_2azn8u">
+      <td class="c-num">2</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidc5wt_2azn8u">Oumaima bouzaeine</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidc5wt_2azn8u" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidc5wt_2azn8u" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidc5wt_2azn8u" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidc5wt_2azn8u" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidc5wt_2azn8u"><span class="rate-num">4/4</span><span class="bar"><i class="good" style="width:100%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidc5wt_2azn8u">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidc5wt_2azn8u" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvidcgvn_2bwv6n">
+      <td class="c-num">3</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidcgvn_2bwv6n">Maram Jlassi</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcgvn_2bwv6n" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcgvn_2bwv6n" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcgvn_2bwv6n" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcgvn_2bwv6n" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidcgvn_2bwv6n"><span class="rate-num">4/4</span><span class="bar"><i class="good" style="width:100%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidcgvn_2bwv6n">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidcgvn_2bwv6n" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvidctlt_2c1dpr">
+      <td class="c-num">4</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidctlt_2c1dpr">Maram makhloufi</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidctlt_2c1dpr" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidctlt_2c1dpr" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidctlt_2c1dpr" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidctlt_2c1dpr" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidctlt_2c1dpr"><span class="rate-num">4/4</span><span class="bar"><i class="good" style="width:100%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidctlt_2c1dpr">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidctlt_2c1dpr" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvidcto9_2d0ur3">
+      <td class="c-num">5</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidcto9_2d0ur3">Takwa ben Khedher</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcto9_2d0ur3" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcto9_2d0ur3" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcto9_2d0ur3" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidcto9_2d0ur3" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidcto9_2d0ur3"><span class="rate-num">4/4</span><span class="bar"><i class="good" style="width:100%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidcto9_2d0ur3">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidcto9_2d0ur3" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mviddl8g_2epyzs">
+      <td class="c-num">6</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mviddl8g_2epyzs">Lamis arfaoui</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mviddl8g_2epyzs" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mviddl8g_2epyzs" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mviddl8g_2epyzs" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="A" data-stid="e_mviddl8g_2epyzs" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">A</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mviddl8g_2epyzs"><span class="rate-num">3/4</span><span class="bar"><i class="mid" style="width:75%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mviddl8g_2epyzs">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mviddl8g_2epyzs" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvide0hv_2f594u">
+      <td class="c-num">7</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvide0hv_2f594u">Tayssir daghfous</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvide0hv_2f594u" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvide0hv_2f594u" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvide0hv_2f594u" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="A" data-stid="e_mvide0hv_2f594u" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">A</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvide0hv_2f594u"><span class="rate-num">3/4</span><span class="bar"><i class="mid" style="width:75%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvide0hv_2f594u">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvide0hv_2f594u" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvidefce_2g6iej">
+      <td class="c-num">8</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidefce_2g6iej">Zaineb dhahak</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidefce_2g6iej" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidefce_2g6iej" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidefce_2g6iej" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="A" data-stid="e_mvidefce_2g6iej" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">A</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidefce_2g6iej"><span class="rate-num">3/4</span><span class="bar"><i class="mid" style="width:75%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidefce_2g6iej">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidefce_2g6iej" title="Supprimer l'élève">×</button></td>
+    </tr><tr data-stid="e_mvidev7p_2htwi1">
+      <td class="c-num">9</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="e_mvidev7p_2htwi1">Chaima elghoul</span></td>
+      <td class="td-att"><button class="att" data-v="P" data-stid="e_mvidev7p_2htwi1" data-sid="s_mvidfock_2i4vwm" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidev7p_2htwi1" data-sid="s_mvidg5dd_2j40xi" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="P" data-stid="e_mvidev7p_2htwi1" data-sid="s_mvidgge1_2k01q0" title="Cliquer pour changer : Présent → Absent → non renseigné">P</button></td><td class="td-att"><button class="att" data-v="A" data-stid="e_mvidev7p_2htwi1" data-sid="s_mvidgoe5_2lemz2" title="Cliquer pour changer : Présent → Absent → non renseigné">A</button></td>
+      <td class="c-rate"><span class="rate" data-stid="e_mvidev7p_2htwi1"><span class="rate-num">3/4</span><span class="bar"><i class="mid" style="width:75%"></i></span></span></td>
+      <td class="c-pay"><button class="pay" data-stid="e_mvidev7p_2htwi1">Non payé</button></td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="e_mvidev7p_2htwi1" title="Supprimer l'élève">×</button></td>
+    </tr></tbody></table></div>
+    </section></main>
+</div>
+
+<dialog id="dlgGroup">
+  <form class="dlg-form" id="formGroup">
+    <h2>Nouveau groupe</h2>
+    <label>Nom du groupe
+      <input name="name" required="" placeholder="2ème Sciences — Groupe 5" autocomplete="off">
+    </label>
+    <label>Horaire
+      <input name="schedule" placeholder="Mardi · 16 h 30 – 18 h 30" autocomplete="off">
+    </label>
+    <menu>
+      <button type="button" class="btn btn-ghost" id="btnCancelGroup">Annuler</button>
+      <button type="submit" class="btn btn-primary">Créer le groupe</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="dlgSession">
+  <form class="dlg-form" id="formSession">
+    <h2>Nouvelle séance</h2>
+    <label>Date de la séance
+      <input type="date" name="date" required="">
+    </label>
+    <menu>
+      <button type="button" class="btn btn-ghost" id="btnCancelSession">Annuler</button>
+      <button type="submit" class="btn btn-primary">Ajouter la séance</button>
+    </menu>
+  </form>
+</dialog>
+
+
+<dialog id="dlgStudent">
+  <form class="dlg-form" id="studentForm">
+    <h2 id="studentDlgTitle">Fiche de l’élève</h2>
+    <div id="studentDetails"></div>
+    <label>Tarif total à payer (DT)
+      <input id="studentFee" type="number" min="0" step="0.5" required>
+    </label>
+    <label>Ajouter un paiement — montant (DT)
+      <input id="paymentAmount" type="number" min="0.5" step="0.5" placeholder="Ex. 20">
+    </label>
+    <label>Date du paiement
+      <input id="paymentDate" type="date">
+    </label>
+    <div class="student-tools">
+      <button class="btn btn-primary" type="button" id="btnSaveFee">Enregistrer le tarif</button>
+      <button class="btn btn-outline" type="button" id="btnAddPayment">Ajouter un paiement</button>
+      <button class="btn btn-outline" type="button" id="btnCloseStudent">Fermer</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+/* =====================================================================
+   1. UTILITAIRES
+   ===================================================================== */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+let _n = 0;
+const uid = (p = 'id') => `${p}_${Date.now().toString(36)}_${(_n++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const fmtShort = (iso) => { if (!iso) return '—'; const [y,m,d] = iso.split('-'); return `${d}/${m}`; };
+const MONTHS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const fmtLong = (iso) => { if (!iso) return ''; const [y,m,d] = iso.split('-'); return `${+d} ${MONTHS[+m-1]} ${y}`; };
+const todayISO = () => { const d = new Date(), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; };
+
+function initials(name){
+  const w = name.replace(/—/g, ' ').trim().split(/\s+/);
+  return ((w[0]?.[0] || '') + (w[1]?.[0] || '')).toUpperCase();
+}
+
+/* =====================================================================
+   2. DONNÉES (reprises du fichier tableaux_presence_tous_groupes.pdf)
+   ===================================================================== */
+const LS_KEY = 'presences.app.v1';
+let state = null;
+
+function seedState(){
+  const G = (name, schedule, sessions, students) => {
+    const ss = sessions.map(date => ({ id: uid('s'), date }));
+    return {
+      id: uid('g'), name, schedule, sessions: ss,
+      students: students.map(([num, nom, att, pay]) => {
+        const a = {};
+        if (att) att.split(' ').forEach((v, i) => {
+          const s = ss[i];
+          if (s && (v === 'P' || v === 'A')) a[s.id] = v;
+        });
+        return { id: uid('e'), num, name: nom, att: a, paid: pay ? { date: pay === 'Y' ? null : pay } : null };
+      })
+    };
+  };
+
+  const groups = [
+    G('Bac Sciences — Groupe 1', 'Samedi · 13 h – 16 h',
+      ['2026-10-03','2026-10-10','2026-10-17'],
+      [[1,'Asil Belhaj Hsin','P P P',null],
+       [2,'Maryem El Ahmed','P P P',null],
+       [3,'Aya Chelouf','P P P',null]]),
+
+    G('2ème Sciences — Groupe 1', 'Samedi · Horaire à confirmer',
+      ['2026-10-03','2026-10-10','2026-10-17'],
+      [[1,'Dalila Yassmine Jlali','P P P',null],
+       [2,'Isra Aounallah','P P P',null],
+       [3,'Mohamed Amine El Fahem','P P P',null],
+       [4,'Lina Ayadi','A P P',null],
+       [5,'Isra Abderazak','P A P',null],
+       [6,'Mayssen Ksontini','P P P',null],
+       [7,'Mariem Belghith','A P P',null],
+       [8,'Zeineb Feki','P P P',null],
+       [9,'Chahd Mandour','P P P',null]]),
+
+    G('3ème Sciences — Groupe 1', 'Séances du 27/09 au 18/10',
+      ['2026-09-27','2026-10-04','2026-10-11','2026-10-15','2026-10-18'],
+      [[1,'Chada Ben Said','— P A P P',null],
+       [2,'Yus Dahak','— P P P P','Y'],
+       [3,'Malek R K I K','— A P P P','Y'],
+       [4,'Shreifa Zangar','P P P P P',null],
+       [5,'Nasrallah Ayadi','— P P P P','Y'],
+       [6,'Yusof Turquie','P P P P P','Y'],
+       [7,'Ghada Negati','— A P P A',null]]),
+
+    G('2ème Sciences — Groupe 2', 'Dimanche · 15 h – 17 h',
+      ['2026-10-04','2026-10-11','2026-10-18'],
+      [[1,'Mahdi Ayari','A P P',null],
+       [2,'Yahya Jemaa','A P P',null],
+       [3,'Saif Ben Mansour','P P P',null],
+       [4,'Yassine Ellefi','A A P',null],
+       [5,'Belhessen Boughzala','P P P',null],
+       [6,'Mohamed Khayati','P P P',null],
+       [7,'El Hamdi Mohamed Yacine','P P P',null],
+       [8,'Malek Karoui','A A P',null],
+       [9,'Kenza Gabsi','A A P',null]]),
+
+    G('2ème Sciences — Groupe 4', 'Séances 12/10, 15/10, 19/10 · rattrapage le 19/10',
+      ['2026-10-12','2026-10-15','2026-10-19'],
+      [[1,'Youssef Oueslati','P P P',null],
+       [2,'Imen Chelly','P P P',null],
+       [3,'Isra Jleli','P P P',null],
+       [4,'Rayen Baccari','A A P',null],
+       [5,'Moslem Gharib','P P P',null]]),
+
+    G('2ème Sciences — Groupe 3', 'Mardi · 16 h 30 – 18 h 30',
+      ['2026-09-30','2026-10-06','2026-10-13','2026-10-20'],
+      [[1,'Ritej Hlel','P P P P','2026-10-20'],
+       [2,'Taima Ben Houria','P P P P',null],
+       [3,'Nour Chariak','— — — P',null],
+       [4,'Yasmine Khalbous','P P P P',null],
+       [5,'Radhia Sioua','P P P P',null],
+       [6,'Maryam Lebni','P P P P',null],
+       [7,'Emna Haggui','P P P P','2026-10-20'],
+       [8,'Isra Zammel','P P P P','2026-10-20'],
+       [9,'Fatma Trabelsi','P P P P',null],
+       [10,'Mohamed Skander Ben Ahmed','P P P P',null],
+       [11,'Aziz Ben Saleh','P P P P',null],
+       [12,'Rayen Bellamine','P P P P',null],
+       [13,'Eya Elghoul','— — P P',null]]),
+
+    G('3ème ICO — Groupe 1', 'Mardi · 18 h 30 – 20 h 30',
+      ['2026-09-30','2026-10-06','2026-10-13','2026-10-20'],
+      [[1,'Lina Mghirbi','P P P A',null],
+       [2,'Emine','— P A P',null]]),
+
+    G('Bac Science G 2', 'Mercredi · 17 h – 20 h',
+      ['2026-09-30','2026-10-07','2026-10-14','2026-10-21'],
+      [[1,'Habiba farah ben hammouda','P P P P',null],
+       [2,'Oumaima bouzaeine','P P P P',null],
+       [3,'Maram Jlassi','P P P P',null],
+       [4,'Maram makhloufi','P P P P',null],
+       [5,'Takwa ben Khedher','P P P P',null],
+       [6,'Lamis arfaoui','P P P A',null],
+       [7,'Tayssir daghfous','P P P A',null],
+       [8,'Zaineb dhahak','P P P A',null],
+       [9,'Chaima elghoul','P P P A',null]]),
+
+    G('4ème Sciences — Groupe 2', 'Horaire à confirmer', [],
+      [[1,'Habib Oumeima','',null]])
+  ];
+
+  return { groups, activeId: groups[0].id, ui: { search: '' } };
+}
+
+function ensureHabibGroup(s){
+  const norm = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const bacExists = s.groups.some(x => norm(x.name) === 'bac science g 2' || norm(x.name) === 'bac sciences groupe 2');
+  if (!bacExists){
+    const dates = ['2026-09-30','2026-10-07','2026-10-14','2026-10-21'];
+    const sessions = dates.map(date => ({id:uid('s'), date}));
+    const roster = [
+      ['Habiba farah ben hammouda','P P P P'], ['Oumaima bouzaeine','P P P P'],
+      ['Maram Jlassi','P P P P'], ['Maram makhloufi','P P P P'], ['Takwa ben Khedher','P P P P'],
+      ['Lamis arfaoui','P P P A'], ['Tayssir daghfous','P P P A'], ['Zaineb dhahak','P P P A'], ['Chaima elghoul','P P P A']
+    ];
+    const students = roster.map(([name, marks], i) => {
+      const att = {}; marks.split(' ').forEach((mark, j) => { if (mark === 'P' || mark === 'A') att[sessions[j].id] = mark; });
+      return {id:uid('e'), num:i+1, name, att, paid:null, payments:[], fee:80};
+    });
+    s.groups.push({id:uid('g'), name:'Bac Science G 2', schedule:'Mercredi · 17 h – 20 h', sessions, students});
+  }
+  let g = s.groups.find(x => {
+    const n = norm(x.name);
+    return n.includes('4eme sciences') && (n.includes('groupe 2') || /\bg 2\b/.test(n));
+  });
+  if (!g){
+    g = { id: uid('g'), name: '4ème Sciences — Groupe 2', schedule: 'Horaire à confirmer', sessions: [], students: [] };
+    s.groups.push(g);
+  }
+  g.sessions = g.sessions || [];
+  g.students = g.students || [];
+  if (!g.students.some(st => norm(st.name) === 'habib oumeima')){
+    g.students.push({ id: uid('e'), num: g.students.reduce((m, st) => Math.max(m, Number(st.num) || 0), 0) + 1, name: 'Habib Oumeima', att: {}, paid: null, payments: [], fee: 100 });
+  }
+}
+
+function normalize(s){
+  s.ui = s.ui || { search: '' };
+  ensureHabibGroup(s);
+  s.groups.forEach(g => {
+    g.sessions = g.sessions || [];
+    g.students = g.students || [];
+    g.students.forEach(st => {
+      st.att = st.att || {};
+      st.paid = st.paid || null;
+      if (!Array.isArray(st.payments)) st.payments = [];
+      if (st.fee === undefined || st.fee === null) st.fee = groupLevelFee(g);
+    });
+  });
+  if (!s.activeId || !s.groups.some(g => g.id === s.activeId)) s.activeId = s.groups[0]?.id || null;
+  return s;
+}
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw){ const s = JSON.parse(raw); if (s && Array.isArray(s.groups)) return normalize(s); }
+  } catch (e){ console.warn('Lecture localStorage impossible', e); }
+  return seedState();
+}
+
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ groups: state.groups, activeId: state.activeId })); }
+  catch (e){ console.warn('Sauvegarde impossible', e); }
+}
+
+/* =====================================================================
+   3. ACCESSEURS & CALCULS
+   ===================================================================== */
+const activeGroup = () => state.groups.find(g => g.id === state.activeId) || null;
+
+function rateOf(st, S){
+  let p = 0, t = 0;
+  S.forEach(s => { const v = st.att[s.id]; if (v === 'P'){ p++; t++; } else if (v === 'A'){ t++; } });
+  return { p, t, pct: t ? Math.round(p / t * 100) : null };
+}
+function rateInner(st, S){
+  const { p, t, pct } = rateOf(st, S);
+  if (!t) return `<span class="rate-empty">—</span>`;
+  const cls = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+  return `<span class="rate-num">${p}/${t}</span><span class="bar"><i class="${cls}" style="width:${pct}%"></i></span>`;
+}
+const rateHTML = (st, S) => `<span class="rate" data-stid="${st.id}">${rateInner(st, S)}</span>`;
+
+const DEFAULT_FEES = {
+  '4': 100, 'quatrieme': 100, 'quatrième': 100, '4ème': 100, '4eme': 100,
+  '1': 80, 'premiere': 80, 'première': 80, '1ère': 80, '1ere': 80,
+  '2': 80, 'deuxieme': 80, 'deuxième': 80, '2ème': 80, '2eme': 80,
+  '3': 80, 'troisieme': 80, 'troisième': 80, '3ème': 80, '3eme': 80
+};
+let selectedStudentId = null;
+function groupLevelFee(g){
+  const n = (g?.name || '').toLowerCase();
+  if (/(4ème|4eme|quatrième|quatrieme|4e|quatre)/.test(n)) return 100;
+  if (/(1ère|1ere|première|premiere|2ème|2eme|deuxième|deuxieme|3ème|3eme|troisième|troisieme|bac|ico)/.test(n)) return 80;
+  return 80;
+}
+function studentFee(st, g=activeGroup()){
+  if (Number.isFinite(Number(st.fee)) && st.fee !== null && st.fee !== '') return Number(st.fee);
+  return groupLevelFee(g);
+}
+function studentPayments(st){
+  if (!Array.isArray(st.payments)) st.payments = [];
+  // Migrate the old paid/unpaid flag without losing its recorded date.
+  if (st.paid && st.payments.length === 0) {
+    st.payments.push({date: st.paid.date || todayISO(), amount: studentFee(st), number: 1, migrated: true});
+  }
+  return st.payments;
+}
+function paidTotal(st){ return studentPayments(st).reduce((sum,p)=>sum + (Number(p.amount)||0),0); }
+function paymentHistoryText(st){
+  return studentPayments(st).map((p,i) => `Paiement ${i+1}: ${Number(p.amount)||0} DT (${p.date || 'date inconnue'})`).join(' | ') || '—';
+}
+function csvCell(v){ return `"${String(v ?? '').replace(/"/g, '""')}"`; }
+function money(n){ return `${(Number(n)||0).toLocaleString('fr-TN',{maximumFractionDigits:2})} DT`; }
+function payHTML(st){
+  const g = activeGroup();
+  const total = paidTotal(st), fee = studentFee(st, g);
+  const blockCount = Math.ceil((g?.sessions?.length || 0) / 4);
+  const required = blockCount * fee;
+  const remaining = Math.max(0, required-total);
+  let covered = total;
+  const blocks = Array.from({length:blockCount}, (_,i) => {
+    const amountForBlock = Math.min(fee, Math.max(0, covered));
+    const paid = fee > 0 && amountForBlock >= fee;
+    covered -= fee;
+    const start = i*4+1, end = Math.min((i+1)*4, g.sessions.length);
+    return `<span class="pay-block ${paid ? 'paid' : 'unpaid'}">${paid ? '🟢' : '🟠'} Séances ${start}–${end} : ${paid ? 'payées' : 'non payées'}</span>`;
+  }).join('');
+  const label = remaining === 0 && blockCount > 0 ? 'Blocs soldés' : total > 0 ? 'Paiement partiel' : 'Non payé';
+  return `<div class="pay-detail">
+    <button type="button" class="pay ${remaining === 0 && blockCount > 0 ? 'paid' : 'unpaid'}" data-stid="${st.id}" title="Ouvrir la fiche et enregistrer un paiement">${label}</button>
+    <div class="pay-blocks">${blocks || '<small>Aucune séance enregistrée</small>'}</div>
+    <small>${money(total)} payé · ${money(remaining)} restant (${money(fee)} par bloc de 4 séances)</small>
+    <button class="btn btn-outline" data-act="student-history" data-stid="${st.id}">Fiche / paiements</button>
+  </div>`;
+}
+
+/* =====================================================================
+   4. RENDU
+   ===================================================================== */
+function render(){ renderSidebar(); renderMain(); save(); }
+
+function renderSidebar(){
+  const el = $('#groupList');
+  el.innerHTML = state.groups.map(g => `
+    <div class="group-item${g.id === state.activeId ? ' active' : ''}" data-gid="${g.id}">
+      <div class="gi-badge">${esc(initials(g.name))}</div>
+      <div class="gi-text">
+        <div class="gi-name">${esc(g.name)}</div>
+        <div class="gi-meta">${g.students.length} élèves · ${g.sessions.length} séances</div>
+      </div>
+    </div>`).join('') || `<div class="gi-meta" style="padding:10px">Aucun groupe</div>`;
+}
+
+function renderMain(){
+  const main = $('#main');
+  const g = activeGroup();
+
+  if (!g){
+    main.innerHTML = `
+      <div class="empty">
+        <div class="empty-ico">📋</div>
+        <h2>Aucun groupe sélectionné</h2>
+        <p>Créez un groupe pour commencer à suivre les présences.</p>
+        <button class="btn btn-primary" id="btnNewGroup2">+ Nouveau groupe</button>
+      </div>`;
+    return;
+  }
+
+  main.innerHTML = `
+    <header class="page-head">
+      <div>
+        <div class="crumb">Groupe</div>
+        <h1 class="title" contenteditable="true" spellcheck="false" data-edit="group-name">${esc(g.name)}</h1>
+        <div class="subtitle" contenteditable="true" spellcheck="false" data-edit="group-schedule">${esc(g.schedule || 'Ajouter un horaire…')}</div>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-outline" id="btnAddSession">+ Séance</button>
+        <button class="btn btn-outline" id="btnAddStudent">+ Élève</button>
+        <button class="btn btn-outline" id="btnExportGroup">⭳ CSV</button>
+        <button class="btn btn-outline" id="btnPrint">🖨 Imprimer</button>
+        <button class="btn btn-outline" id="btnDelGroup">Supprimer</button>
+      </div>
+    </header>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="card">
+      <div class="card-head">
+        <div class="search"><input id="search" type="search" placeholder="Rechercher un élève…" autocomplete="off"></div>
+        <div class="legend">
+          <span><i class="dot" style="background:#12b76a"></i>Présent</span>
+          <span><i class="dot" style="background:#f04438"></i>Absent</span>
+          <span><i class="dot" style="background:#c2c9d2"></i>Non renseigné</span>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="grid" id="grid"></table></div>
+    </section>`;
+
+  renderTable();
+  updateStats();
+
+  const s = $('#search');
+  if (s){ s.value = state.ui.search || ''; if (s.value) applyFilter(s.value); }
+}
+
+function renderTable(){
+  const g = activeGroup();
+  const table = $('#grid');
+  const S = g.sessions;
+
+  if (!g.students.length){
+    table.innerHTML = `<tbody><tr><td class="empty-cell" colspan="${S.length + 5}">
+      Aucun élève dans ce groupe. Cliquez sur « + Élève » pour commencer.</td></tr></tbody>`;
+    return;
+  }
+
+  const head = `<thead><tr>
+    <th class="c-num">N°</th>
+    <th class="c-name">Nom et prénom</th>
+    ${S.map(s => `<th class="c-sess">
+        <div class="sess-date">${fmtShort(s.date)}</div>
+        <span class="sess-tools">
+          <button class="mini ok" data-act="all-present" data-sid="${s.id}" title="Marquer tous présents">✓</button>
+          <button class="mini del" data-act="del-session" data-sid="${s.id}" title="Supprimer la séance">×</button>
+        </span>
+      </th>`).join('')}
+    <th class="c-rate">Assiduité</th>
+    <th class="c-pay">Paiement</th>
+    <th class="c-act"></th>
+  </tr></thead>`;
+
+  const rows = g.students.map(st => {
+    const cells = S.map(s => {
+      const v = st.att[s.id] || '';
+      return `<td class="td-att"><button class="att" data-v="${v}" data-stid="${st.id}" data-sid="${s.id}"
+        title="Cliquer pour changer : Présent → Absent → non renseigné">${v || '—'}</button></td>`;
+    }).join('');
+    return `<tr data-stid="${st.id}">
+      <td class="c-num">${st.num}</td>
+      <td class="c-name"><span class="name" contenteditable="true" spellcheck="false" data-stid="${st.id}">${esc(st.name)}</span></td>
+      ${cells}
+      <td class="c-rate">${rateHTML(st, S)}</td>
+      <td class="c-pay">${payHTML(st)}</td>
+      <td class="c-act"><button class="mini del" data-act="del-student" data-stid="${st.id}" title="Supprimer l'élève">×</button></td>
+    </tr>`;
+  }).join('');
+
+  table.innerHTML = head + `<tbody>${rows}</tbody>`;
+}
+
+function updateStats(){
+  const g = activeGroup(), box = $('#stats');
+  if (!g || !box) return;
+
+  const n = g.students.length;
+  const last = g.sessions[g.sessions.length - 1];
+  let present = 0, paid = 0, P = 0, T = 0;
+
+  if (last) g.students.forEach(st => { if (st.att[last.id] === 'P') present++; });
+  g.students.forEach(st => {
+    const required = Math.ceil(g.sessions.length / 4) * studentFee(st, g);
+    if (required > 0 && paidTotal(st) >= required) paid++;
+    g.sessions.forEach(s => { const v = st.att[s.id]; if (v === 'P'){ P++; T++; } else if (v === 'A') T++; });
+  });
+  const rate = T ? Math.round(P / T * 100) : null;
+
+  const card = (label, value, sub) => `
+    <div class="stat">
+      <div class="label">${label}</div>
+      <div class="value">${value}</div>
+      <div class="sub">${sub}</div>
+    </div>`;
+
+  box.innerHTML =
+    card('Effectif', n, `${n} élève${n > 1 ? 's' : ''} inscrit${n > 1 ? 's' : ''}`) +
+    card('Dernière séance', last ? `${present}/${n}` : '—', last ? fmtLong(last.date) : 'aucune séance') +
+    card('Taux de présence', rate === null ? '—' : rate + ' %', T ? `${P} présences / ${T} pointages` : 'aucun pointage') +
+    card('Paiements soldés', `${paid}/${n}`, 'élèves ayant réglé tous les blocs de 4 séances');
+}
+
+function applyFilter(q){
+  state.ui.search = q;
+  const term = q.trim().toLowerCase();
+  $$('#grid tbody tr').forEach(tr => {
+    const name = (tr.querySelector('.name')?.textContent || '').toLowerCase();
+    tr.hidden = !!term && !name.includes(term);
+  });
+}
+
+/* =====================================================================
+   5. ACTIONS
+   ===================================================================== */
+function selectGroup(gid){
+  if (state.activeId === gid) return;
+  state.activeId = gid;
+  state.ui.search = '';
+  render();
+}
+
+function cycleAtt(stid, sid){
+  const g = activeGroup(); if (!g) return;
+  const st = g.students.find(s => s.id === stid); if (!st) return;
+
+  const cur = st.att[sid];
+  const next = cur === 'P' ? 'A' : cur === 'A' ? null : 'P';
+  if (next) st.att[sid] = next; else delete st.att[sid];
+
+  const btn = document.querySelector(`.att[data-stid="${stid}"][data-sid="${sid}"]`);
+  if (btn){ btn.dataset.v = next || ''; btn.textContent = next || '—'; }
+
+  const rateEl = document.querySelector(`.rate[data-stid="${stid}"]`);
+  if (rateEl) rateEl.innerHTML = rateInner(st, g.sessions);
+
+  updateStats();
+  save();
+}
+
+function openStudentRecord(stid){
+  const g = activeGroup(); if (!g) return;
+  const st = g.students.find(s => s.id === stid); if (!st) return;
+  selectedStudentId = stid;
+  studentPayments(st);
+  $('#studentDlgTitle').textContent = `Fiche — ${st.name}`;
+  $('#studentFee').value = studentFee(st, g);
+  $('#paymentAmount').value = '';
+  $('#paymentDate').value = todayISO();
+  const fee = studentFee(st,g), total = paidTotal(st), required = Math.ceil(g.sessions.length / 4) * fee, remaining = Math.max(0,required-total);
+  const attendance = g.sessions.map(s => {
+    const v = st.att[s.id];
+    return `<div class="history-row"><span>${esc(fmtLong(s.date))}</span><span>${v === 'P' ? 'Présent' : v === 'A' ? 'Absent' : 'Non renseigné'}</span></div>`;
+  }).join('') || '<small>Aucune séance enregistrée.</small>';
+  const payments = studentPayments(st).map((p,i) =>
+    `<div class="history-row"><span>Paiement ${i+1} · ${esc(fmtLong(p.date) || 'Date inconnue')}</span><b>${money(p.amount)}</b></div>`
+  ).join('') || '<small>Aucun paiement enregistré.</small>';
+  $('#studentDetails').innerHTML = `
+    <div class="money-summary">
+      <div><small>Tarif par bloc de 4 séances</small><b>${money(fee)}</b></div>
+      <div><small>Total prévu (${Math.ceil(g.sessions.length / 4)} bloc(s))</small><b>${money(required)}</b></div>
+      <div><small>Total payé</small><b>${money(total)}</b></div>
+      <div><small>Reste à payer</small><b>${money(remaining)}</b></div>
+    </div>
+    <h3>Historique des paiements</h3><div class="history-list">${payments}</div>
+    <h3>Présences et absences</h3><div class="history-list">${attendance}</div>`;
+  $('#dlgStudent').showModal();
+}
+function saveStudentFee(){
+  const g = activeGroup(); if (!g || !selectedStudentId) return;
+  const st = g.students.find(s => s.id === selectedStudentId); if (!st) return;
+  const fee = Number($('#studentFee').value);
+  if (!Number.isFinite(fee) || fee < 0){ alert('Saisis un tarif valide.'); return; }
+  st.fee = fee;
+  renderTable(); updateStats(); save(); openStudentRecord(st.id);
+}
+function addStudentPayment(){
+  const g = activeGroup(); if (!g || !selectedStudentId) return;
+  const st = g.students.find(s => s.id === selectedStudentId); if (!st) return;
+  const amount = Number($('#paymentAmount').value);
+  const date = $('#paymentDate').value || todayISO();
+  if (!Number.isFinite(amount) || amount <= 0){ alert('Saisis un montant de paiement supérieur à zéro.'); return; }
+  const payments = studentPayments(st);
+  payments.push({number: payments.length + 1, amount, date});
+  st.paid = {date};
+  renderTable(); updateStats(); save(); openStudentRecord(st.id);
+}
+
+function allPresent(sid){
+  const g = activeGroup(); if (!g) return;
+  g.students.forEach(st => { st.att[sid] = 'P'; });
+  renderTable(); updateStats(); applyFilter(state.ui.search || ''); save();
+}
+
+function delSession(sid){
+  const g = activeGroup(); if (!g) return;
+  const s = g.sessions.find(x => x.id === sid);
+  if (!confirm(`Supprimer la séance du ${fmtLong(s?.date)} ?`)) return;
+  g.sessions = g.sessions.filter(x => x.id !== sid);
+  g.students.forEach(st => { delete st.att[sid]; });
+  renderTable(); updateStats(); save();
+}
+
+function addStudent(){
+  const g = activeGroup(); if (!g) return;
+  const nums = g.students.map(s => s.num).filter(n => typeof n === 'number');
+  const num = nums.length ? Math.max(...nums) + 1 : 1;
+  g.students.push({ id: uid('e'), num, name: 'Nouvel élève', att: {}, paid: null, payments: [], fee: groupLevelFee(g) });
+  renderTable(); updateStats(); applyFilter(state.ui.search || ''); save();
+
+  const rows = $$('#grid tbody tr');
+  const last = rows[rows.length - 1];
+  if (last){
+    last.scrollIntoView({ block: 'nearest' });
+    const span = last.querySelector('.name');
+    if (span){
+      span.focus();
+      const r = document.createRange();
+      r.selectNodeContents(span);
+      const sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+    }
+  }
+}
+
+function delStudent(stid){
+  const g = activeGroup(); if (!g) return;
+  const st = g.students.find(s => s.id === stid);
+  if (!st || !confirm(`Supprimer « ${st.name} » du groupe ?`)) return;
+  g.students = g.students.filter(s => s.id !== stid);
+  renderTable(); updateStats(); save();
+}
+
+function delGroup(){
+  const g = activeGroup(); if (!g) return;
+  if (!confirm(`Supprimer définitivement le groupe « ${g.name} » et toutes ses données ?`)) return;
+  state.groups = state.groups.filter(x => x.id !== g.id);
+  state.activeId = state.groups[0]?.id || null;
+  render();
+}
+
+/* =====================================================================
+   6. EXPORT / IMPRESSION
+   ===================================================================== */
+function download(filename, content){
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const slug = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '').toLowerCase();
+
+function exportGroupCSV(){
+  const g = activeGroup(); if (!g) return;
+  const S = g.sessions, sep = ';';
+  const lines = [];
+  lines.push(['N°', 'Nom et prénom', ...S.map(s => fmtShort(s.date)), 'Présences', 'Absences', 'Tarif (DT)', 'Total payé (DT)', 'Reste (DT)', 'Historique paiements'].join(sep));
+  g.students.forEach(st => {
+    const vals = S.map(s => st.att[s.id] || '—');
+    const { p, t } = rateOf(st, S);
+    const fee = studentFee(st, g), total = paidTotal(st), required = Math.ceil(g.sessions.length / 4) * fee;
+    lines.push([
+      st.num,
+      csvCell(st.name),
+      ...vals, p, t - p, fee, total, Math.max(0, required-total), csvCell(paymentHistoryText(st))
+    ].join(sep));
+  });
+  download(`presences_${slug(g.name)}.csv`, '\uFEFF' + lines.join('\r\n'));
+}
+
+function exportAllCSV(){
+  const sep = ';';
+  const lines = [['Groupe', 'Horaire', 'N°', 'Nom et prénom', 'Séances', 'Présences', 'Absences', 'Tarif (DT)', 'Total payé (DT)', 'Reste (DT)', 'Historique paiements'].join(sep)];
+  state.groups.forEach(g => {
+    g.students.forEach(st => {
+      const { p, t } = rateOf(st, g.sessions);
+      const fee = studentFee(st, g), total = paidTotal(st), required = Math.ceil(g.sessions.length / 4) * fee;
+      lines.push([
+        csvCell(g.name), csvCell(g.schedule || ''), st.num, csvCell(st.name),
+        g.sessions.length, p, t - p, fee, total, Math.max(0, required-total), csvCell(paymentHistoryText(st))
+      ].join(sep));
+    });
+  });
+  download(`presences_tous_groupes_${todayISO()}.csv`, '\uFEFF' + lines.join('\r\n'));
+}
+
+function resetAll(){
+  if (!confirm('Réinitialiser toutes les données et revenir aux tableaux d’origine ?')) return;
+  localStorage.removeItem(LS_KEY);
+  state = seedState();
+  render();
+}
+
+/* =====================================================================
+   7. DIALOGUES
+   ===================================================================== */
+function openGroupDialog(){
+  const dlg = $('#dlgGroup');
+  $('#formGroup').reset();
+  dlg.showModal();
+  setTimeout(() => $('#formGroup [name=name]').focus(), 60);
+}
+function openSessionDialog(){
+  const g = activeGroup(); if (!g) return;
+  const dlg = $('#dlgSession');
+  $('#formSession').reset();
+  $('#formSession [name=date]').value = todayISO();
+  dlg.showModal();
+}
+
+$('#formGroup').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const name = String(fd.get('name') || '').trim();
+  const schedule = String(fd.get('schedule') || '').trim();
+  if (!name) return;
+  const g = { id: uid('g'), name, schedule, sessions: [], students: [] };
+  state.groups.push(g);
+  state.activeId = g.id;
+  state.ui.search = '';
+  $('#dlgGroup').close();
+  render();
+});
+
+$('#formSession').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const g = activeGroup(); if (!g) return;
+  const date = String(new FormData(e.target).get('date') || '');
+  if (!date) return;
+  if (g.sessions.some(s => s.date === date)){
+    alert('Cette séance existe déjà pour ce groupe.');
+    return;
+  }
+  g.sessions.push({ id: uid('s'), date });
+  g.sessions.sort((a, b) => a.date.localeCompare(b.date));
+  $('#dlgSession').close();
+  renderTable(); updateStats(); applyFilter(state.ui.search || ''); save();
+});
+
+/* =====================================================================
+   8. ÉVÉNEMENTS GLOBAUX (délégation)
+   ===================================================================== */
+document.addEventListener('click', (e) => {
+  const el = e.target;
+  const control = el.closest('button') || el;
+
+  const gi = el.closest('.group-item');
+  if (gi){ selectGroup(gi.dataset.gid); return; }
+
+  const att = el.closest('.att');
+  if (att){ cycleAtt(att.dataset.stid, att.dataset.sid); return; }
+
+  const pay = el.closest('.pay');
+  if (pay){ openStudentRecord(pay.dataset.stid); return; }
+
+  const act = el.closest('[data-act]');
+  if (act){
+    const a = act.dataset.act;
+    if (a === 'del-session'){ delSession(act.dataset.sid); return; }
+    if (a === 'all-present'){ allPresent(act.dataset.sid); return; }
+    if (a === 'del-student'){ delStudent(act.dataset.stid); return; }
+    if (a === 'student-history'){ openStudentRecord(act.dataset.stid); return; }
+  }
+
+  switch (control.id){
+    case 'btnNewGroup':
+    case 'btnNewGroup2': openGroupDialog(); return;
+    case 'btnAddSession': openSessionDialog(); return;
+    case 'btnAddStudent': addStudent(); return;
+    case 'btnExportGroup': exportGroupCSV(); return;
+    case 'btnPrint': window.print(); return;
+    case 'btnDelGroup': delGroup(); return;
+    case 'btnExportAll': exportAllCSV(); return;
+    case 'btnReset': resetAll(); return;
+    case 'btnCancelGroup': $('#dlgGroup').close(); return;
+    case 'btnCancelSession': $('#dlgSession').close(); return;
+    case 'btnSaveFee': saveStudentFee(); return;
+    case 'btnAddPayment': addStudentPayment(); return;
+    case 'btnCloseStudent': $('#dlgStudent').close(); return;
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'search') applyFilter(e.target.value);
+});
+
+/* Sauvegarde des champs éditables (blur ne bulle pas → capture) */
+document.addEventListener('blur', (e) => {
+  const t = e.target;
+  if (!t.isContentEditable) return;
+  const g = activeGroup(); if (!g) return;
+
+  if (t.dataset.edit === 'group-name'){
+    const v = t.textContent.trim();
+    if (v){ g.name = v; renderSidebar(); } else { t.textContent = g.name; }
+    save();
+  } else if (t.dataset.edit === 'group-schedule'){
+    g.schedule = t.textContent.trim();
+    save();
+  } else if (t.classList.contains('name')){
+    const st = g.students.find(s => s.id === t.dataset.stid);
+    if (st){
+      const v = t.textContent.trim();
+      if (v) st.name = v; else t.textContent = st.name;
+      save();
+    }
+  }
+}, true);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.isContentEditable){
+    e.preventDefault();
+    e.target.blur();
+  }
+});
+
+/* =====================================================================
+   9. DÉMARRAGE
+   ===================================================================== */
+state = loadState();
+render();
+</script>
+
+</body></html>
