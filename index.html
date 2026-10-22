@@ -182,6 +182,42 @@
     .table-wrap{max-height:none}
   }
 
+  /* ---------- Optimisation iPhone ---------- */
+  @media (max-width:600px){
+    html,body{height:auto;min-height:100%;width:100%;overflow-x:hidden}
+    .app{width:100%;max-width:100%;height:auto;min-height:100vh;overflow:visible}
+    .sidebar{padding:12px;gap:10px}
+    .main{width:100%;min-width:0;padding:12px 10px 24px;overflow:visible}
+    .page-head{gap:8px;margin-bottom:12px}
+    .title{font-size:20px;max-width:100%;overflow-wrap:anywhere}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+    .stat{min-width:0;padding:11px 10px}
+    .stat .value{font-size:20px}
+    .stat .sub{font-size:11px;overflow-wrap:anywhere}
+    .card{width:100%;max-width:100%;min-width:0}
+    .card-head{align-items:flex-start;flex-direction:column;padding:10px;gap:8px}
+    .search{width:100%}
+    .search input{width:100%;max-width:100%;min-height:42px}
+    .legend{font-size:11px;gap:9px}
+    .table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;max-height:none}
+    .grid{width:max-content;min-width:100%;font-size:12px}
+    .grid thead th{padding:9px 7px;font-size:10px}
+    .grid tbody td{padding:6px 7px}
+    .c-num{width:30px;min-width:30px}
+    .name{min-width:110px;max-width:145px;white-space:normal;overflow-wrap:anywhere;padding:4px 2px;font-size:12px}
+    .grid thead th.c-sess{min-width:48px;padding:9px 3px}
+    .att{width:34px;height:36px;font-size:13px}
+    .grid thead th.c-rate{min-width:88px}
+    .rate{gap:4px}
+    .bar{width:34px}
+    .pay{padding:6px 8px;font-size:11px;white-space:normal;max-width:86px;text-align:center}
+    .c-act{width:28px;min-width:28px}
+    .c-act .mini{opacity:1;width:24px;height:24px}
+    .sess-tools{opacity:1}
+    .head-actions{width:100%;gap:6px}
+    .btn{white-space:normal;max-width:100%}
+  }
+
   /* ---------- Impression ---------- */
   @media print{
     body{background:#fff}
@@ -280,7 +316,13 @@
       </div>
     </div></nav>
     <div class="sidebar-foot">
+      <div style="font-size:11px;line-height:1.4;color:var(--text-2);padding:0 6px 4px">
+        Les données restent sur cet appareil. Pour les transférer, crée une sauvegarde complète puis restaure-la sur l’autre appareil.
+      </div>
       <button class="btn btn-ghost" id="btnExportAll">⭳ Exporter tout (CSV)</button>
+      <button class="btn btn-ghost" id="btnBackupJSON">⬇ Sauvegarde complète</button>
+      <button class="btn btn-ghost" id="btnImportJSON">⬆ Restaurer une sauvegarde</button>
+      <input id="importJSONFile" type="file" accept=".json,application/json" hidden>
       <button class="btn btn-ghost danger" id="btnReset">↺ Réinitialiser les données</button>
     </div>
   </aside>
@@ -606,48 +648,23 @@ function seedState(){
        [8,'Zaineb dhahak','P P P A',null],
        [9,'Chaima elghoul','P P P A',null]]),
 
-    G('4ème Sciences — Groupe 2', 'Horaire à confirmer', [],
-      [[1,'Habib Oumeima','',null]])
   ];
 
   return { groups, activeId: groups[0].id, ui: { search: '' } };
 }
 
-function ensureHabibGroup(s){
+function removeDuplicateFourthScienceGroup(s){
+  // Oumaima est déjà inscrite dans « Bac Science G 2 » : supprimer le groupe doublon.
   const norm = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  const bacExists = s.groups.some(x => norm(x.name) === 'bac science g 2' || norm(x.name) === 'bac sciences groupe 2');
-  if (!bacExists){
-    const dates = ['2026-09-30','2026-10-07','2026-10-14','2026-10-21'];
-    const sessions = dates.map(date => ({id:uid('s'), date}));
-    const roster = [
-      ['Habiba farah ben hammouda','P P P P'], ['Oumaima bouzaeine','P P P P'],
-      ['Maram Jlassi','P P P P'], ['Maram makhloufi','P P P P'], ['Takwa ben Khedher','P P P P'],
-      ['Lamis arfaoui','P P P A'], ['Tayssir daghfous','P P P A'], ['Zaineb dhahak','P P P A'], ['Chaima elghoul','P P P A']
-    ];
-    const students = roster.map(([name, marks], i) => {
-      const att = {}; marks.split(' ').forEach((mark, j) => { if (mark === 'P' || mark === 'A') att[sessions[j].id] = mark; });
-      return {id:uid('e'), num:i+1, name, att, paid:null, payments:[], fee:80};
-    });
-    s.groups.push({id:uid('g'), name:'Bac Science G 2', schedule:'Mercredi · 17 h – 20 h', sessions, students});
-  }
-  let g = s.groups.find(x => {
-    const n = norm(x.name);
-    return n.includes('4eme sciences') && (n.includes('groupe 2') || /\bg 2\b/.test(n));
+  s.groups = (s.groups || []).filter(g => {
+    const n = norm(g.name);
+    return !(n.includes('4eme sciences') && (n.includes('groupe 2') || /\bg 2\b/.test(n)));
   });
-  if (!g){
-    g = { id: uid('g'), name: '4ème Sciences — Groupe 2', schedule: 'Horaire à confirmer', sessions: [], students: [] };
-    s.groups.push(g);
-  }
-  g.sessions = g.sessions || [];
-  g.students = g.students || [];
-  if (!g.students.some(st => norm(st.name) === 'habib oumeima')){
-    g.students.push({ id: uid('e'), num: g.students.reduce((m, st) => Math.max(m, Number(st.num) || 0), 0) + 1, name: 'Habib Oumeima', att: {}, paid: null, payments: [], fee: 100 });
-  }
 }
 
 function normalize(s){
   s.ui = s.ui || { search: '' };
-  ensureHabibGroup(s);
+  removeDuplicateFourthScienceGroup(s);
   s.groups.forEach(g => {
     g.sessions = g.sessions || [];
     g.students = g.students || [];
@@ -1077,6 +1094,55 @@ function exportAllCSV(){
   download(`presences_tous_groupes_${todayISO()}.csv`, '\uFEFF' + lines.join('\r\n'));
 }
 
+function exportBackupJSON(){
+  // Sauvegarde toutes les données applicatives dans un fichier transportable entre appareils.
+  const payload = {
+    app: 'presences-groupes',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    state: {
+      groups: state.groups,
+      activeId: state.activeId,
+      ui: state.ui || { search: '' }
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sauvegarde_presences_${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  alert('Sauvegarde créée. Pour transférer les données sur un autre appareil, envoie ce fichier JSON à cet appareil puis utilise « Restaurer une sauvegarde ».');
+}
+
+function importBackupJSONFile(file){
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || ''));
+      const incoming = parsed && parsed.state ? parsed.state : parsed;
+      if (!incoming || !Array.isArray(incoming.groups) ||
+          !incoming.groups.every(g => g && typeof g.name === 'string' &&
+            Array.isArray(g.sessions) && Array.isArray(g.students))) {
+        throw new Error('Format de sauvegarde non reconnu.');
+      }
+      if (!confirm('Restaurer cette sauvegarde ? Les données actuellement affichées sur cet appareil seront remplacées. Fais d’abord une sauvegarde si tu veux les conserver.')) return;
+      state = normalize(incoming);
+      save();
+      render();
+      alert('Sauvegarde restaurée sur cet appareil.');
+    } catch (err) {
+      alert('Impossible de lire cette sauvegarde. Vérifie que tu as choisi un fichier JSON exporté depuis cette application.');
+    }
+  };
+  reader.onerror = () => alert('Le fichier de sauvegarde n’a pas pu être lu.');
+  reader.readAsText(file);
+}
+
 function resetAll(){
   if (!confirm('Réinitialiser toutes les données et revenir aux tableaux d’origine ?')) return;
   localStorage.removeItem(LS_KEY);
@@ -1164,6 +1230,8 @@ document.addEventListener('click', (e) => {
     case 'btnPrint': window.print(); return;
     case 'btnDelGroup': delGroup(); return;
     case 'btnExportAll': exportAllCSV(); return;
+    case 'btnBackupJSON': exportBackupJSON(); return;
+    case 'btnImportJSON': $('#importJSONFile').click(); return;
     case 'btnReset': resetAll(); return;
     case 'btnCancelGroup': $('#dlgGroup').close(); return;
     case 'btnCancelSession': $('#dlgSession').close(); return;
@@ -1171,6 +1239,12 @@ document.addEventListener('click', (e) => {
     case 'btnAddPayment': addStudentPayment(); return;
     case 'btnCloseStudent': $('#dlgStudent').close(); return;
   }
+});
+
+$('#importJSONFile').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  importBackupJSONFile(file);
+  e.target.value = '';
 });
 
 document.addEventListener('input', (e) => {
